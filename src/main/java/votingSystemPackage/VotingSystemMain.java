@@ -13,6 +13,7 @@ package votingSystemPackage;
 public class VotingSystemMain {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        
+         new frameAdminAccess().setVisible(true);
     }
 }
