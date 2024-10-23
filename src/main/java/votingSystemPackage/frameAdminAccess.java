@@ -1,5 +1,7 @@
 package votingSystemPackage;
 
+
+import votingSystemPackage.idGenerator;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,8 +14,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
-import votingSystemPackage.setTimeElection;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class frameAdminAccess extends JFrame implements ActionListener {
@@ -29,12 +32,15 @@ public class frameAdminAccess extends JFrame implements ActionListener {
             btnSetElection,btnForceEndElection,btnCurrentTime,btnSignOut;
     private JScrollPane spSummary;
        
-    private DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+    private DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     private DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm");
     
     setTimeElection setElection = new setTimeElection();
     
     frameAdminAccess(){
+        
+        
+        
         setSize(800,600);
         setLayout(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -143,7 +149,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         lblStartElection.setBounds(20,465,150,30);
         add(lblStartElection);
         
-        JLabel lblDateForm = new JLabel("YY/MM/DD");
+        JLabel lblDateForm = new JLabel("MM/DD/YY");
         lblDateForm.setBounds(135, 440,80, 30);
         add(lblDateForm);
         
@@ -197,6 +203,9 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         btnSignOut.addActionListener(this);
         btnRemoveCandidate.addActionListener(this);
         btnSetElection.addActionListener(this);
+        btnSearchCandidate.addActionListener(this);
+        
+        updateSummaryTextField();
         
 //        setTimeElection setTime = new setTimeElection();
     }
@@ -204,21 +213,124 @@ public class frameAdminAccess extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         
-        //button for sign out
-        if(e.getSource() == btnSignOut){
-            int resultSignOut = JOptionPane.showConfirmDialog(this, "Are you sure you want to leave the Admin Page?", "Log Out", JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
-            
-            if(resultSignOut == JOptionPane.YES_OPTION){
-                dispose();    
-            }else{
+        /*
+        btnAddCandidate    - Add named candidate along with their partlist and position to the voting system database using 
+                           - This button does not work if one in txtfAddName and txtfAddParty is not filled
+        
+        btnDeleteCandidate - Delete named candidate along with their data on the database using their ID 
+                           - Enters a error message if the txtfIDRemove have no value or the ID presented does not exist on the database
+        
+        btnClearCandidate  - clear txtfAddName and txtfAddParty, and set index of cmbAddPosition to 0
+        
+        btnSearchCandidate - Search get the information (name,position, and partylist) of the candidate using their ID
+        
+        btnCurrentTime     - Get the current date and time
+        
+        btnSignOut         - dispose this frame
+     
+        */
+        if (e.getSource() == btnAddCandidate){
+             try
+    {
+        if (((txtfAddName.getText() == null || "".equals(txtfAddParty.getText().trim())) || "".equals(txtfAddName.getText().trim())) || txtfAddParty.getText()==null ){
+            JOptionPane.showMessageDialog(null, "Candidate Information is required.", "Error", JOptionPane.WARNING_MESSAGE);
+        } else {
+            if (cmbAddPosition.getSelectedIndex() != 0){
+                String query = "insert into votingsystemdatabase.candidates(ID,name,partylist,position) VALUES (?,?,?,?)";
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
                 
-            }
+                idGenerator id = new idGenerator();
+                
+                try (PreparedStatement ps = con.prepareStatement(query)) {
+                    ps.setInt(1,id.idGenerator("candidates", "tableCandidates"));
+                    ps.setString(2, txtfAddName.getText() );
+                    ps.setString(3, txtfAddParty.getText());
+                    ps.setString(4, (String)cmbAddPosition.getSelectedItem());
+                    ps.executeUpdate();
+                }
+            }          
+            txtfAddName.setText("");
+            txtfAddParty.setText("");
+            cmbAddPosition.setSelectedIndex(0);
             
+            updateSummaryTextField();
+            }
+            else {
+                JOptionPane.showMessageDialog(null, "Select necessary position.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    catch(SQLException a)
+    {
+        JOptionPane.showMessageDialog(null,"not connect to server and message is"+a.getMessage());
+    }       catch (ClassNotFoundException ex) {
+                Logger.getLogger(frameAdminAccess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else if (e.getSource() ==btnClearCandidate){
+            txtfAddName.setText("");
+            txtfAddParty.setText("");
+            cmbAddPosition.setSelectedIndex(0);
         }
         
-        //Button for Getting current time
-        if(e.getSource()== btnCurrentTime){
+    // Output the name, partylist, and position based on the given ID  
+        else if (e.getSource() == btnSearchCandidate){
+            String i = txtfRemoveID.getText();
+            String query = "select name,partylist,position from votingsystemdatabase.candidates where ID=" +i ;
             
+        //Show invalid output if the ID don't exist
+            txtfRemoveName.setText("Invalid ID");
+            txtfRemoveParty.setText("");
+            txtfRemovePosition.setText("");
+            
+        //search for the name,partylist,and position of the given ID on the database
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()){
+                            txtfRemoveName.setText((String)rs.getString(1));
+                            txtfRemoveParty.setText((String)rs.getString(2));
+                            txtfRemovePosition.setText((String)rs.getString(3));
+                        }
+                    }           }               
+               updateSummaryTextField();
+                
+            } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(frameAdminAccess.class.getName()).log(Level.SEVERE, null, ex);
+            }}
+        
+        else if (e.getSource() == btnRemoveCandidate){
+            try {
+                
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072");
+                     PreparedStatement ps = con.prepareStatement("delete from votingsystemdatabase.candidates where ID=" + txtfRemoveID.getText())) {
+                    ps.executeUpdate();
+                }
+                
+            //Error Message when the user don't input any ID
+                if (txtfRemoveID.getText().trim().equals("")){
+                    txtfRemoveName.setText("Deleted Successfully");
+                    txtfRemoveParty.setText("");
+                    txtfRemovePosition.setText("");
+                }
+            // ** will later solve how to implement an error message if the ID does not exist in the data base **
+                
+                txtfRemoveName.setText("Deleted Successfully");
+                txtfRemoveParty.setText("");
+                txtfRemovePosition.setText("");
+                
+                updateSummaryTextField();
+                
+            } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(frameAdminAccess.class.getName()).log(Level.SEVERE, null, ex);
+            }        
+        }
+      
+        else if (e.getSource() == btnCurrentTime){
             LocalDate currDate = LocalDate.now();
             String formattedCurrDate = currDate.format(formatDate);
             txtfDateStartElection.setText(formattedCurrDate);
@@ -227,53 +339,16 @@ public class frameAdminAccess extends JFrame implements ActionListener {
             String formattedCurrTime = currTime.format(formatTime);
             txtfTimeStartElection.setText(formattedCurrTime);
         }
-        //Adding Candidates
-        if(e.getSource()==btnAddCandidate){
-            if(!txtfAddName.getText().isBlank() && !txtfAddParty.getText().isBlank() ){
-                if(cmbAddPosition.getSelectedIndex() == 0){
-                        JOptionPane.showMessageDialog(this, "Select necessary position.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                else{
-                        //ENTER ADD CANDIDATE CODE HERE
-                    
-                        
-                        
-                        
-                        
-                         txtfAddName.setText("");
-                        txtfAddParty.setText("");
-                        cmbAddPosition.setSelectedIndex(0);
-                    }
-            }
-            else{
-                    JOptionPane.showMessageDialog(this, "Candidate Information is required.", "Error", JOptionPane.WARNING_MESSAGE);
-            }
+        
+        else if(e.getSource() == btnSignOut){
+            
+            int resultSignOut = JOptionPane.showConfirmDialog(this, "Are you sure you want to leave the Admin Page?", "Log Out", JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
+            if (resultSignOut == JOptionPane.YES_OPTION){
+                dispose();   
+            } 
         }
         
-       //Remove Candidates
-       if(e.getSource()==btnRemoveCandidate){
-            if(!txtfRemoveID.getText().isBlank()){
-                int ans = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete the selected candidate?", "Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
-                if(ans == 0){
-                      txtfRemoveName.setText("");
-                      txtfRemoveID.setText("");
-                      txtfRemovePosition.setText("");
-                }
-            }
-            else{
-                JOptionPane.showMessageDialog(this, "No Candidate Selected to remove.", "Error", JOptionPane.WARNING_MESSAGE);
-            }
-        }
-       
-       //Clear Add Candidates
-       if(e.getSource() == btnClearCandidate){
-           txtfAddName.setText("");
-           txtfAddParty.setText("");
-           cmbAddPosition.setSelectedIndex(0);
-       }
-       
-       //Select End Date
-       try{
+        try{
        if(e.getSource()==btnSetElection){
            if(!txtfDateEndElection.getText().isBlank() && !txtfTimeEndElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank()){
                
@@ -307,42 +382,34 @@ public class frameAdminAccess extends JFrame implements ActionListener {
        catch(IllegalArgumentException format){
             JOptionPane.showMessageDialog(this, "Set Date or Time does not follow the format","Error",JOptionPane.ERROR_MESSAGE);
        }
+        }
+    
+    //Function used to show the list of candidates on different position by appending their names on the summary (text area)
+    void updateSummaryTextField(){
         
-//        try{
-//            Connection con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/dbadmin","andre","Andurehhh619");
-//            
-//            PreparedStatement ps = (PreparedStatement) con.prepareStatement("INSERT INTO candidate (candidateName, candidateParty, candidatePosition) VALUES(?,?,?)");
-//            
-//            if(e.getSource() == btnAddCandidate){
-//            //ps.setInt(1,1);
-//            ps.setString(1, txtfAddName.getText());
-//            ps.setString(2,txtfAddParty.getText());
-//            ps.setString(3,(String)cmbAddPosition.getSelectedItem());
-//            
-//                ps.executeUpdate();
-//                
-//                System.out.println("Success");
-                
-//                if(ps.next()){
-//                    JOptionPane.showMessageDialog(btnAddCandidate, "Successfully Added");
-//                }else{
-//                    JOptionPane.showMessageDialog(btnAddCandidate,"Unable to Add to Database.","Error",JOptionPane.ERROR_MESSAGE);
-//                }
+        txtaSummary.setText("President \n \n");
+        txtaSummary.append(positionParticipants("President") + "\n");
+        txtaSummary.append("Vice President \n \n");
+        txtaSummary.append(positionParticipants("Vice President"));
         
-            
-    //}
-            
-          
-            
-        //} 
-        //catch(Exception err){
-            
-        //}
-        
-//        catch (SQLException sqlException){
-//            sqlException.printStackTrace();
-//        }
-        
-        
+    }
+    
+    // Function that search the names of the candidates on each position and compile it to one String
+    String positionParticipants(String position){
+        try {
+                String names = "";
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
+                PreparedStatement ps = con.prepareStatement("Select ID,name,partylist from votingsystemdatabase.candidates where position=" + "\"" +position + "\"");
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()){
+                            names += rs.getInt(1)+" - " +rs.getString(2)+"\t \t" +rs.getString(3) + "\n";
+                        }   }
+            }
+                return names;  
+            } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(frameAdminAccess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+    return null;    
     }
 }
