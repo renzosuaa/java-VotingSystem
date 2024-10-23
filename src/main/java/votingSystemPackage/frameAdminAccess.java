@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;
+import votingSystemPackage.setTimeElection;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class frameAdminAccess extends JFrame implements ActionListener {
@@ -28,10 +29,10 @@ public class frameAdminAccess extends JFrame implements ActionListener {
             btnSetElection,btnForceEndElection,btnCurrentTime,btnSignOut;
     private JScrollPane spSummary;
        
-    private DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     private DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm");
     
-//    setTimeElection setElection = new setTimeElection();
+    setTimeElection setElection = new setTimeElection();
     
     frameAdminAccess(){
         setSize(800,600);
@@ -142,7 +143,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         lblStartElection.setBounds(20,465,150,30);
         add(lblStartElection);
         
-        JLabel lblDateForm = new JLabel("MM/DD/YY");
+        JLabel lblDateForm = new JLabel("YY/MM/DD");
         lblDateForm.setBounds(135, 440,80, 30);
         add(lblDateForm);
         
@@ -228,7 +229,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         }
         //Adding Candidates
         if(e.getSource()==btnAddCandidate){
-            if(!txtfAddName.getText().isBlank() || !txtfAddParty.getText().isBlank() ){
+            if(!txtfAddName.getText().isBlank() && !txtfAddParty.getText().isBlank() ){
                 if(cmbAddPosition.getSelectedIndex() == 0){
                         JOptionPane.showMessageDialog(this, "Select necessary position.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -272,8 +273,9 @@ public class frameAdminAccess extends JFrame implements ActionListener {
        }
        
        //Select End Date
+       try{
        if(e.getSource()==btnSetElection){
-           if(!txtfDateEndElection.getText().isBlank() || !txtfTimeEndElection.getText().isBlank() || !txtfDateStartElection.getText().isBlank() || !txtfDateStartElection.getText().isBlank()){
+           if(!txtfDateEndElection.getText().isBlank() && !txtfTimeEndElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank()){
                
                
                String StartDate = txtfDateStartElection.getText();
@@ -282,12 +284,28 @@ public class frameAdminAccess extends JFrame implements ActionListener {
                String EndDate = txtfDateEndElection.getText();
                String EndTime = txtfTimeEndElection.getText();
                
-//               setTimeElection = new setTimeElection.isWithinTime(StartDate,StartTime,EndDate,EndTime);
+               if(setElection.isStartBeforeEnd(StartDate, StartTime, EndDate, EndTime)){
                
-               JOptionPane.showMessageDialog(this, "Election dates set, and is now running.", "Date and Time Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                    if(setElection.isWithinTime(StartDate, StartTime, EndDate, EndTime)){
+                        System.out.println("Time in");
+                    }else{
+                        System.out.println("Time out");
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, "Election dates set, and is now running.", "Date and Time Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                    
+                }else{
+                   JOptionPane.showMessageDialog(null, "Date entered for Election is invalid.","Error",JOptionPane.ERROR_MESSAGE);
+               }
+               
+               
             }else{
                JOptionPane.showMessageDialog(this, "Date of Election Required.","Error",JOptionPane.ERROR_MESSAGE);
                 }
+            }
+        }
+       catch(IllegalArgumentException format){
+            JOptionPane.showMessageDialog(this, "Set Date or Time does not follow the format","Error",JOptionPane.ERROR_MESSAGE);
        }
         
 //        try{
