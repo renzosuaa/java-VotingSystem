@@ -1,7 +1,5 @@
 package votingSystemPackage;
 
-
-
 import votingSystemPackage.idGenerator;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -36,7 +34,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
     private DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     private DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm");
     
-//    setTimeElection setElection = new setTimeElection();
+    setTimeElection setElection = new setTimeElection();
     
     frameAdminAccess(){
         
@@ -279,12 +277,20 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         else if (e.getSource() == btnSearchCandidate){
             String i = txtfRemoveID.getText();
             String query = "select name,partylist,position from votingsystemdatabase.candidates where ID=" +i ;
+
             
         //Show invalid output if the ID don't exist
             txtfRemoveName.setText("Invalid ID");
             txtfRemoveParty.setText("");
             txtfRemovePosition.setText("");
             
+
+            
+        //Show invalid output if the ID don't exist
+            txtfRemoveName.setText("Invalid ID");
+            txtfRemoveParty.setText("");
+            txtfRemovePosition.setText("");
+
         //search for the name,partylist,and position of the given ID on the database
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
@@ -348,6 +354,42 @@ public class frameAdminAccess extends JFrame implements ActionListener {
                 dispose();   
             } 
         }
+
+        try{
+       if(e.getSource()==btnSetElection){
+           if(!txtfDateEndElection.getText().isBlank() && !txtfTimeEndElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank()){
+               
+               
+               String StartDate = txtfDateStartElection.getText();
+               String StartTime = txtfTimeStartElection.getText();
+               
+               String EndDate = txtfDateEndElection.getText();
+               String EndTime = txtfTimeEndElection.getText();
+               
+               if(setElection.isStartBeforeEnd(StartDate, StartTime, EndDate, EndTime)){
+               
+                    if(setElection.isWithinTime(StartDate, StartTime, EndDate, EndTime)){
+                        System.out.println("Time in");
+                    }else{
+                        System.out.println("Time out");
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, "Election dates set, and is now running.", "Date and Time Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                    
+                }else{
+                   JOptionPane.showMessageDialog(null, "Date entered for Election is invalid.","Error",JOptionPane.ERROR_MESSAGE);
+               }
+               
+               
+            }else{
+               JOptionPane.showMessageDialog(this, "Date of Election Required.","Error",JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+       catch(IllegalArgumentException format){
+            JOptionPane.showMessageDialog(this, "Set Date or Time does not follow the format","Error",JOptionPane.ERROR_MESSAGE);
+       }
+
         }
     
     //Function used to show the list of candidates on different position by appending their names on the summary (text area)
