@@ -13,6 +13,6 @@ package votingSystemPackage;
 public class VotingSystemMain {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
+        frameWaitingPage wait = new frameWaitingPage();
+        }
 }
