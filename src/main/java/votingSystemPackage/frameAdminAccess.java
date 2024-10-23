@@ -237,9 +237,9 @@ public class frameAdminAccess extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(null, "Candidate Information is required.", "Error", JOptionPane.WARNING_MESSAGE);
         } else {
             if (cmbAddPosition.getSelectedIndex() != 0){
-                String query = "insert into candidates.tablecandidates(ID,name,partylist,position) VALUES (?,?,?,?)";
+                String query = "insert into votingsystemdatabase.candidates(ID,name,partylist,position) VALUES (?,?,?,?)";
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Candidates","root","renzo072")) {
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
                 
                 idGenerator id = new idGenerator();
                 
@@ -278,7 +278,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
     // Output the name, partylist, and position based on the given ID  
         else if (e.getSource() == btnSearchCandidate){
             String i = txtfRemoveID.getText();
-            String query = "select name,partylist,position from candidates.tablecandidates where ID=" +i ;
+            String query = "select name,partylist,position from votingsystemdatabase.candidates where ID=" +i ;
             
         //Show invalid output if the ID don't exist
             txtfRemoveName.setText("Invalid ID");
@@ -288,7 +288,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         //search for the name,partylist,and position of the given ID on the database
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Candidates","root","renzo072")) {
+                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
                     PreparedStatement ps = con.prepareStatement(query);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()){
@@ -307,7 +307,8 @@ public class frameAdminAccess extends JFrame implements ActionListener {
             try {
                 
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Candidates","root","renzo072"); PreparedStatement ps = con.prepareStatement("delete from candidates.tablecandidates where ID=" + txtfRemoveID.getText())) {
+                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072");
+                     PreparedStatement ps = con.prepareStatement("delete from votingsystemdatabase.candidates where ID=" + txtfRemoveID.getText())) {
                     ps.executeUpdate();
                 }
                 
@@ -364,8 +365,8 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         try {
                 String names = "";
                 Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Candidates","root","renzo072")) {
-                PreparedStatement ps = con.prepareStatement("Select ID,name,partylist from candidates.tableCandidates where position=" + "\"" +position + "\"");
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/votingsystemdatabase","root","renzo072")) {
+                PreparedStatement ps = con.prepareStatement("Select ID,name,partylist from votingsystemdatabase.candidates where position=" + "\"" +position + "\"");
                     try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()){
                             names += rs.getInt(1)+" - " +rs.getString(2)+"\t \t" +rs.getString(3) + "\n";
