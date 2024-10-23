@@ -1,6 +1,5 @@
 package votingSystemPackage;
 
-
 import votingSystemPackage.idGenerator;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -278,12 +277,20 @@ public class frameAdminAccess extends JFrame implements ActionListener {
         else if (e.getSource() == btnSearchCandidate){
             String i = txtfRemoveID.getText();
             String query = "select name,partylist,position from votingsystemdatabase.candidates where ID=" +i ;
+
             
         //Show invalid output if the ID don't exist
             txtfRemoveName.setText("Invalid ID");
             txtfRemoveParty.setText("");
             txtfRemovePosition.setText("");
             
+
+            
+        //Show invalid output if the ID don't exist
+            txtfRemoveName.setText("Invalid ID");
+            txtfRemoveParty.setText("");
+            txtfRemovePosition.setText("");
+
         //search for the name,partylist,and position of the given ID on the database
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
@@ -347,7 +354,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
                 dispose();   
             } 
         }
-        
+
         try{
        if(e.getSource()==btnSetElection){
            if(!txtfDateEndElection.getText().isBlank() && !txtfTimeEndElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank() && !txtfDateStartElection.getText().isBlank()){
@@ -382,6 +389,7 @@ public class frameAdminAccess extends JFrame implements ActionListener {
        catch(IllegalArgumentException format){
             JOptionPane.showMessageDialog(this, "Set Date or Time does not follow the format","Error",JOptionPane.ERROR_MESSAGE);
        }
+
         }
     
     //Function used to show the list of candidates on different position by appending their names on the summary (text area)
